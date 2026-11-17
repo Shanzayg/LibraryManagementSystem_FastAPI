@@ -61,9 +61,9 @@ members ={
 
 #          ---- LOANS DATABASE ----
 loans ={
-            101:{'member_id':'101', 'status':'borrowed' },
-            102:{'member_id':'102', 'status':'returned'},
-            103:{'member_id':'103', 'status':'borrowed'}
+            101:{'members_id':101, 'status':'borrowed' },
+            102:{'members_id':102, 'status':'returned'},
+            103:{'members_id':103, 'status':'borrowed'}
             }
 
 #        ---- AUTHOR"S DATABASE ----
@@ -111,22 +111,20 @@ def get_loans(loans_id: int):
         return loans[loans_id]
     return {'error':'not found'}
 
-@app.get(
-    "/members/{member_id}/loans",
-    tags=["Loans"],
-    summary="Get member loans",
-    description="Retrieve all loan records associated with a specific member."
-)
-def get_member_loans(member_id: int):
+@app.get('/members/{members_id}/loans/{loans_id}')
+def get_loans_status(members_id :int, loans_id: int):
+    if members_id not in members:
+        return {'error':'member not found'}
+    
+    if loans_id not in loans:
+        return {'error': "loan does not exist"}
 
-    if member_id not in members:
-        return {"error": "Member not found"}
+    loan = loans[loans_id]
 
-    members_loans = {}
+    if loan['members_id'] != members_id:
+        return {'this loan does not belong to this member.'}
 
-    for loan_id, loan in loans.items():
-        if loan["member_id"] == member_id:
-            members_loans[loan_id] = loan
+    return loan
 
-    return members_loans
+
 
