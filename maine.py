@@ -92,6 +92,37 @@ def count_books():
         "unavailable": len(books) - available,
     }
 
+#  Search and filter: GET /books?title=python&author=smith&available=true
+@app.get("/books")
+def get_books(
+    title: Optional[str] = None, # Optional query params using str | None = None
+
+    author: Optional[str] = None,
+    available: Optional[bool] = None,
+    sort_by: Literal ['title','author','genre']='title' ,
+    order: Literal['asc', 'desc'] = 'asc' ,
+    skip: int = Query(0, ge=0), # Query params for listing: GET /books?skip=0&limit=10 (pagination)
+    limit : int = Query(10, le=100, ge=0) 
+):
+    results = []
+    for book_id, b in books.items():
+        if title and title.lower() not in b["title"].lower():
+            continue
+        if author and author.lower() not in b["author"].lower():
+            continue
+        if available is not None and b["available"] != available:
+            continue
+        results.append({"id": book_id, **b})
+
+
+#   Add sorting: GET /books?sort_by=title&order=desc
+    def sort_key(b):
+        value = b[sort_by]
+        return value.lower() if isinstance(value, str) else value
+    results.sort (key= sort_key, reverse= (order == 'desc'))
+
+    return results [skip: skip+limit]
+
 @app.get('/authors/{author_id}')
 def get_author(author_id : int):
     if author_id in authors:
@@ -135,33 +166,4 @@ def get_loans_status(members_id :int, loans_id: int):
     return loan
 
 
-#  Search and filter: GET /books?title=python&author=smith&available=true
-@app.get("/books")
-def get_books(
-    title: Optional[str] = None, # Optional query params using str | None = None
 
-    author: Optional[str] = None,
-    available: Optional[bool] = None,
-    sort_by: Literal ['title','author','genre']='title' ,
-    order: Literal['asc', 'desc'] = 'asc' ,
-    skip: int = Query(0, ge=0), # Query params for listing: GET /books?skip=0&limit=10 (pagination)
-    limit : int = Query(10, le=100, ge=0) 
-):
-    results = []
-    for book_id, b in books.items():
-        if title and title.lower() not in b["title"].lower():
-            continue
-        if author and author.lower() not in b["author"].lower():
-            continue
-        if available is not None and b["available"] != available:
-            continue
-        results.append({"id": book_id, **b})
-
-
-#   Add sorting: GET /books?sort_by=title&order=desc
-    def sort_key(b):
-        value = b[sort_by]
-        return value.lower() if isinstance(value, str) else value
-    results.sort (key= sort_key, reverse= (order == 'desc'))
-
-    return results [skip: skip+limit]
