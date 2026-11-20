@@ -1,0 +1,22 @@
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models import User
+from app.schemas.user import UserCreate
+
+
+def get_user(db: Session, user_id: int) -> User | None:
+    return db.get(User, user_id)
+
+
+def get_user_by_email(db: Session, email: str) -> User | None:
+    return db.scalar(select(User).where(User.email == email))
+
+
+def create_user(db: Session, data: UserCreate, hashed_password: str) -> User:
+    # The caller passes an already-hashed password (hashing is topic 16).
+    user = User(email=data.email, full_name=data.full_name, hashed_password=hashed_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

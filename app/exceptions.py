@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 class AppError(Exception):
     """Base class for our own errors. Each child sets its HTTP status code."""
     status_code = status.HTTP_400_BAD_REQUEST
+    headers: dict | None = None
 
     def __init__(self, message: str):
         self.message = message
@@ -25,6 +26,12 @@ class BusinessRuleError(AppError):
     status_code = status.HTTP_400_BAD_REQUEST
 
 
+class UnauthorizedError(AppError):
+    """Wrong login details, or a missing/invalid/expired token."""
+    status_code = status.HTTP_401_UNAUTHORIZED
+    headers = {"WWW-Authenticate": "Bearer"}
+
+
 class ForbiddenError(AppError):
     """A normal user tried a librarian-only action."""
     status_code = status.HTTP_403_FORBIDDEN
@@ -34,4 +41,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError):
         # Same shape as FastAPI's own HTTPException: {"detail": "..."}
-        return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.message}, headers=exc.headers)

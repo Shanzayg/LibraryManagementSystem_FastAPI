@@ -18,7 +18,7 @@ class BookCreate(BaseModel):
     author: str = Field(min_length=1, max_length=100, examples=["Robert C. Martin"])
     isbn: str = Field(description="10 or 13 digits, hyphens allowed", examples=["9780132350884"])
     published_year: int = Field(ge=1900, le=date.today().year, examples=[2008])
-    copies: int = Field(ge=0, examples=[3])
+    total_copies: int = Field(ge=0, examples=[3])
 
     @field_validator("isbn")
     @classmethod
@@ -32,7 +32,7 @@ class BookUpdate(BaseModel):
     author: str | None = Field(default=None, min_length=1, max_length=100)
     isbn: str | None = Field(default=None, description="10 or 13 digits, hyphens allowed")
     published_year: int | None = Field(default=None, ge=1900, le=date.today().year)
-    copies: int | None = Field(default=None, ge=0)
+    total_copies: int | None = Field(default=None, ge=0)
 
     @field_validator("isbn")
     @classmethod
@@ -49,4 +49,5 @@ class BookOut(BaseModel):
     author: str
     isbn: str
     published_year: int
-    copies: int
+    total_copies: int
+    available_copies: int
